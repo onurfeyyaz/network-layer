@@ -21,6 +21,7 @@ public actor NetworkManager {
         guard let request = endpoint.urlRequest else {
             throw NetworkError.invalidURL
         }
+        
         do {
             let (data, response) = try await urlSession.data(for: request)
             try validate(response: response, data: data)

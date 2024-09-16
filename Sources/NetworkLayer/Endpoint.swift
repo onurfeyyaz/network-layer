@@ -12,7 +12,7 @@ public protocol Endpoint {
     var path: String { get }
     var method: HTTPMethod { get }
     var headers: [String: String]? { get }
-    var queryParameters: [String: String]? { get }
+    var queryParameters: [String: CustomStringConvertible]? { get }
     var body: Data? { get }
 }
 
@@ -24,7 +24,7 @@ extension Endpoint {
         
         if let queryParameters {
             urlComponents?.queryItems = queryParameters.map {
-                URLQueryItem(name: $0.key, value: $0.value)
+                URLQueryItem(name: $0.key, value: $0.value.description)
             }
         }
         
@@ -38,7 +38,6 @@ extension Endpoint {
         }
         
         request.httpBody = body
-        
         return request
     }
 }
