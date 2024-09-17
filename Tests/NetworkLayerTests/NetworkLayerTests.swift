@@ -1,10 +1,11 @@
 import Testing
+import Foundation
 @testable import NetworkLayer
 
 @Suite("Endpoint Tests")
-struct EndpointCheck {
+struct endpointCheck {
     let mockEndpoint = MockEndpoint()
-    
+
     @Test("Base URL and path are valid") func baseURLandPath() {
         #expect(mockEndpoint.urlRequest!.url!.absoluteString.contains("https://example.com/mock/testing"))
     }
@@ -23,5 +24,21 @@ struct EndpointCheck {
     
     @Test("HTTP body is nil") func httpBody() {
         #expect(mockEndpoint.urlRequest?.httpBody == nil)
+    }
+}
+
+@Suite("Network Manager test")
+struct networkManagerRequestTest {
+    lazy var session: URLSession = {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [URLSession.self]
+        return URLSession(configuration: configuration)
+    }()
+    
+    lazy var networkManager: NetworkManager = {
+        NetworkManager(urlSession: session)
+    }()
+    
+    @Test("Request test") func reqTest() async throws {
     }
 }
