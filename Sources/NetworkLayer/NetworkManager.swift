@@ -10,10 +10,12 @@ fileprivate enum NetworkConstants {
 public actor NetworkManager {
     
     public static let shared = NetworkManager()
-    private let urlSession: URLSession
+    private let urlSession: NetworkSessionProtocol
+    private let decoder: JSONDecoder
     
-    private init(urlSession: URLSession = .shared) {
+    init(urlSession: NetworkSessionProtocol = URLSession.shared, decoder: JSONDecoder = JSONDecoder()) {
         self.urlSession = urlSession
+        self.decoder = decoder
     }
     
     public func request<T: Decodable>(_ endpoint: Endpoint, responseType: T.Type) async throws -> T {
@@ -54,7 +56,7 @@ public actor NetworkManager {
     
     private func decode<T: Decodable>(data: Data, to type: T.Type) throws -> T {
         do {
-            return try JSONDecoder().decode(T.self, from: data)
+            return try decoder.decode(T.self, from: data)
         } catch {
             throw NetworkError.decodingError(error)
         }
