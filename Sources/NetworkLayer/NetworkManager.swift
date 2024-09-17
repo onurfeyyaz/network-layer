@@ -10,7 +10,6 @@ fileprivate enum NetworkConstants {
 public actor NetworkManager {
     
     public static let shared = NetworkManager()
-    
     private let urlSession: URLSession
     
     private init(urlSession: URLSession = .shared) {
