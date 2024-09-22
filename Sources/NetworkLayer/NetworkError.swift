@@ -10,6 +10,7 @@ public enum NetworkError: Error {
     case invalidURL
     case noData
     case decodingError(Error)
+    case informational(statusCode: Int, data: Data)
     case redirection(statusCode: Int, data: Data)
     case clientError(statusCode: Int, data: Data)
     case serverError(statusCode: Int, data: Data)
@@ -21,6 +22,7 @@ public enum NetworkError: Error {
         static let invalidURL = "[INVALID] The URL provided was invalid."
         static let noData = "[NODATA] No data was received from the server."
         static let decodingError = "[DECODE] Failed to decode the response."
+        static let informational = "[INFORMATIONAL] Status code:"
         static let redirection = "[REDIRECTION] Status code:"
         static let clientError = "[CLIENT] Status code:"
         static let serverError = "[SERVER] Status code:"
@@ -36,6 +38,8 @@ public enum NetworkError: Error {
             return ErrorMessages.noData
         case .decodingError(let error):
             return "\(ErrorMessages.decodingError) Error: \(error.localizedDescription)"
+        case .informational(let statusCode, let data):
+            return "\(ErrorMessages.informational) \(statusCode). Response: \(self.dataToString(data))"
         case .redirection(let statusCode, let data):
             return "\(ErrorMessages.redirection) \(statusCode). Response: \(self.dataToString(data))"
         case .clientError(let statusCode, let data):

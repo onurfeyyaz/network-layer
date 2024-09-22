@@ -1,6 +1,14 @@
+//
+//  NetworkManager.swift
+//  NetworkLayer
+//
+//  Created by Feyyaz ONUR on 1.09.2024.
+//
+
 import Foundation
 
 fileprivate enum NetworkConstants {
+    static let informationCodes = 100...199
     static let successCodes = 200...299
     static let redirectionCodes = 300...399
     static let clientErrorCodes = 400...499
@@ -10,10 +18,10 @@ fileprivate enum NetworkConstants {
 public actor NetworkManager {
     
     public static let shared = NetworkManager()
-    private let urlSession: NetworkSessionProtocol
+    private let urlSession: URLSessionProtocol
     private let decoder: JSONDecoder
     
-    init(urlSession: NetworkSessionProtocol = URLSession.shared, decoder: JSONDecoder = JSONDecoder()) {
+    init(urlSession: URLSessionProtocol = URLSession.shared, decoder: JSONDecoder = JSONDecoder()) {
         self.urlSession = urlSession
         self.decoder = decoder
     }
@@ -41,6 +49,8 @@ public actor NetworkManager {
         }
         
         switch httpResponse.statusCode {
+        case NetworkConstants.informationCodes:
+            throw NetworkError.informational(statusCode: httpResponse.statusCode, data: data)
         case NetworkConstants.successCodes:
             return
         case NetworkConstants.redirectionCodes:

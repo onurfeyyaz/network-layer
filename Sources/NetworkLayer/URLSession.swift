@@ -7,12 +7,10 @@
 
 import Foundation
 
-protocol NetworkSessionProtocol {
+/// A protocol to allow mocking of URLSession for testing purposes.
+/// Conforms to Sendable for thread safety in async contexts.
+public protocol URLSessionProtocol: Sendable {
     func data(for request: URLRequest) async throws -> (Data, URLResponse)
 }
 
-extension URLSession: NetworkSessionProtocol {
-    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        try await self.data(for: request, delegate: nil)
-    }
-}
+extension URLSession: URLSessionProtocol {}
