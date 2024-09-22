@@ -29,10 +29,10 @@ struct MockEndpoint: Endpoint {
     }
     
     var queryParameters: [String : CustomStringConvertible]? {
-            return [
-                "language": "tr-TR"
-            ]
-        }
+        return [
+            "language": "tr-TR"
+        ]
+    }
     
     var body: Data? {
         return nil

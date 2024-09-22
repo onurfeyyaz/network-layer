@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  MockURLSession.swift
 //  NetworkLayer
 //
 //  Created by Feyyaz ONUR on 17.09.2024.
@@ -8,19 +8,20 @@
 import Foundation
 import NetworkLayer
 
-final class MockURLSession: URLSession, @unchecked Sendable {
-    var mockData: Data?
-    var mockResponse: URLResponse?
-    var mockError: Error?
+actor MockURLSession {
+    private var mockDataTask: (Data, URLResponse)?
     
+    func setMockDataTask(data: Data, response: URLResponse) {
+        self.mockDataTask = (data, response)
+    }
+}
+
+extension MockURLSession: URLSessionProtocol {
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        if let error = mockError {
-            throw error
-        }
-        guard let data = mockData,
-              let response = mockResponse else {
+        guard let mockDataTask = self.mockDataTask else {
             throw NetworkError.noData
         }
-        return (data, response)
+        
+        return mockDataTask
     }
 }
