@@ -8,9 +8,20 @@
 import Foundation
 import NetworkLayer
 
-struct MockEndpoint: Endpoint {
+enum MockEndpoint {
+    case invalidURL
+    case getMethod
+    case postMethod
+}
+
+extension MockEndpoint: Endpoint {
     var baseURL: URL {
-        URL(string: "https://example.com")!
+        switch self {
+        case .invalidURL:
+            URL(string: "invalidURLText")!
+        case .postMethod, .getMethod:
+            URL(string: "https://example.com")!
+        }
     }
     
     var path: String {
@@ -18,7 +29,12 @@ struct MockEndpoint: Endpoint {
     }
     
     var method: NetworkLayer.HTTPMethod {
-        .GET
+        switch self {
+        case .getMethod, .invalidURL:
+                .GET
+        case .postMethod:
+                .POST
+        }
     }
     
     var headers: [String : String]? {
@@ -35,6 +51,15 @@ struct MockEndpoint: Endpoint {
     }
     
     var body: Data? {
-        return nil
+        return switch self {
+        case .postMethod:
+            """
+            {
+                "description": "This is a POST method"
+            }
+            """.data(using: .utf8)!
+        case .getMethod, .invalidURL:
+            nil
+        }
     }
 }

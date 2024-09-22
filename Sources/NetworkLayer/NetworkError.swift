@@ -18,7 +18,6 @@ public enum NetworkError: Error {
     case unknown(Error)
     
     private enum ErrorMessages {
-        static let baseError = "[ERROR]"
         static let invalidURL = "[INVALID] The URL provided was invalid."
         static let noData = "[NODATA] No data was received from the server."
         static let decodingError = "[DECODE] Failed to decode the response."

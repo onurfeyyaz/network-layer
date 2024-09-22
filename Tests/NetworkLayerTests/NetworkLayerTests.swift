@@ -4,27 +4,41 @@ import Foundation
 
 @Suite("Endpoint Tests")
 struct EndpointCheck {
-    let mockEndpoint = MockEndpoint()
+    let mockGetEndpoint = MockEndpoint.getMethod
+    let mockPostEndpoint = MockEndpoint.postMethod
     
     @Test("Base URL and path are valid") func baseURLandPath() async throws {
-        try #require(mockEndpoint.urlRequest?.url != nil)
-        #expect(mockEndpoint.urlRequest?.url!.absoluteString.contains("https://example.com/mock/testing") ?? false)
+        try #require(mockGetEndpoint.urlRequest?.url != nil)
+        #expect(mockGetEndpoint.urlRequest?.url!.absoluteString.contains("https://example.com/mock/testing") ?? false)
     }
     
-    @Test("HTTP method is GET") func httpMethod() {
-        #expect(mockEndpoint.urlRequest?.httpMethod?.contains("GET") ?? false)
+    @Test("HTTP method is GET") func getHttpMethod() {
+        #expect(mockGetEndpoint.urlRequest?.httpMethod?.contains("GET") ?? false)
+    }
+    
+    @Test("HTTP method is POST") func postHttpMethod() {
+        #expect(mockPostEndpoint.urlRequest?.httpMethod?.contains("POST") ?? false)
     }
     
     @Test("Header fields have an Authorization") func httpHeaderFields() {
-        #expect((mockEndpoint.urlRequest?.allHTTPHeaderFields?["Authorization"]?.contains("Bearer swifttesting123")) ?? false)
+        #expect((mockGetEndpoint.urlRequest?.allHTTPHeaderFields?["Authorization"]?.contains("Bearer swifttesting123")) ?? false)
     }
     
     @Test("Query parameter has a language value") func queryParams() {
-        #expect(mockEndpoint.queryParameters?["language"] as? String == "tr-TR")
+        #expect(mockGetEndpoint.queryParameters?["language"] as? String == "tr-TR")
     }
     
-    @Test("HTTP body is nil") func httpBody() {
-        #expect(mockEndpoint.urlRequest?.httpBody == nil)
+    @Test("GET body is nil") func getHttpBody() {
+        #expect(mockGetEndpoint.urlRequest?.httpBody == nil)
+    }
+    
+    @Test("POST body is not nil") func postHttpBody() {
+        let expectedBody = """
+        {
+            "description": "This is a POST method"
+        }
+        """.data(using: .utf8)
+        #expect(mockPostEndpoint.urlRequest?.httpBody == expectedBody)
     }
 }
 
@@ -55,7 +69,7 @@ struct NetworkManagerTest {
                         headerFields: nil)!
     ])
     func responseErrors(response: HTTPURLResponse) async throws {
-        let endpoint = MockEndpoint()
+        let endpoint = MockEndpoint.getMethod
         let mockJsonData = """
         {
             "statusCode": \(response.statusCode)
@@ -72,7 +86,7 @@ struct NetworkManagerTest {
     }
     
     @Test("Successful Request Test") func successfulRequest() async throws {
-        let endpoint = MockEndpoint()
+        let endpoint = MockEndpoint.getMethod
         let mockJsonData = """
         {
             "id": 1,

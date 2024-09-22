@@ -37,8 +37,6 @@ public actor NetworkManager {
             
             return try decode(data: data, to: responseType)
         } catch let error as NetworkError {
-            throw error
-        } catch {
             throw NetworkError.unknown(error)
         }
     }
