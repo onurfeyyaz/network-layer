@@ -34,6 +34,10 @@ struct NetworkManagerTest {
     
     @Test("Response Errors Tests", arguments: [
         HTTPURLResponse(url: URL(string: "https://example.com")!,
+                        statusCode: 100,
+                        httpVersion: nil,
+                        headerFields: nil)!,
+        HTTPURLResponse(url: URL(string: "https://example.com")!,
                         statusCode: 300,
                         httpVersion: nil,
                         headerFields: nil)!,
