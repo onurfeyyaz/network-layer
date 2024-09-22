@@ -6,7 +6,7 @@
 //
 import Foundation
 
-public enum NetworkError: Error {
+public enum NetworkError: Error, Equatable {
     case invalidURL
     case noData
     case decodingError(Error)
@@ -54,5 +54,25 @@ public enum NetworkError: Error {
     
     private func dataToString(_ data: Data) -> String {
         return String(data: data, encoding: .utf8) ?? "No readable data"
+    }
+    
+    public static func == (lhs: NetworkError, rhs: NetworkError) -> Bool {
+        switch (lhs, rhs) {
+        case (.invalidURL, .invalidURL),
+            (.noData, .noData):
+            return true
+        case (.decodingError(let lhsError), .decodingError(let rhsError)):
+            return lhsError.localizedDescription == rhsError.localizedDescription
+        case (.informational(let lhsStatusCode, let lhsData), .informational(let rhsStatusCode, let rhsData)),
+            (.redirection(let lhsStatusCode, let lhsData), .redirection(let rhsStatusCode, let rhsData)),
+            (.clientError(let lhsStatusCode, let lhsData), .clientError(let rhsStatusCode, let rhsData)),
+            (.serverError(let lhsStatusCode, let lhsData), .serverError(let rhsStatusCode, let rhsData)),
+            (.unexpectedStatusCode(let lhsStatusCode, let lhsData), .unexpectedStatusCode(let rhsStatusCode, let rhsData)):
+            return lhsStatusCode == rhsStatusCode && lhsData == rhsData
+        case (.unknown(let lhsError), .unknown(let rhsError)):
+            return lhsError.localizedDescription == rhsError.localizedDescription
+        default:
+            return false
+        }
     }
 }
