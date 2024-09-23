@@ -15,3 +15,13 @@ struct MockSuccessResponse: Decodable {
 struct MockErrorResponse: Decodable {
     let statusCode: Int
 }
+
+struct MockDecodingErrorResponse: Decodable {
+    let temperature: Int
+    let temperatureUnit: String
+    
+}
+
+enum MockCodingKeys: String, CodingKey {
+    case key
+}

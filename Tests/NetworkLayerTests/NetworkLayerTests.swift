@@ -46,6 +46,30 @@ struct EndpointCheck {
 struct NetworkManagerTest {
     let mockURLSession = MockURLSession()
     
+    @Test("Successful Request Test") func successfulRequest() async throws {
+        let endpoint = MockEndpoint.getMethod
+        let mockJsonData = """
+        {
+            "id": 1,
+            "name": "Swift Testing"
+        }
+        """.data(using: .utf8)!
+        
+        let mockSuccessResponse = HTTPURLResponse(url: URL(string: "https://example.com")!,
+                                                  statusCode: 200,
+                                                  httpVersion: nil,
+                                                  headerFields: nil)!
+
+        await mockURLSession.setMockDataTask(data: mockJsonData, response: mockSuccessResponse)
+        let networkManager = NetworkManager(urlSession: mockURLSession)
+        
+        // No error thrown because the response is successful
+        let result = try await networkManager.request(endpoint, responseType: MockSuccessResponse.self)
+        
+        #expect(result.id == 1)
+        #expect(result.name.contains("Swift Testing"))
+    }
+    
     @Test("Response Errors Tests", arguments: [
         HTTPURLResponse(url: URL(string: "https://example.com")!,
                         statusCode: 100,
@@ -85,27 +109,116 @@ struct NetworkManagerTest {
         }
     }
     
-    @Test("Successful Request Test") func successfulRequest() async throws {
-        let endpoint = MockEndpoint.getMethod
-        let mockJsonData = """
+    /*
+    @Test("Invalid URL") func invalidURL() async throws {
+     
+     // need to mock endpoint with a nil URLRequest
+     
+        let endpoint = MockEndpoint.invalidURL
+        let response = HTTPURLResponse(url: URL(string: "http://example.com")!,
+                                       statusCode: 200,
+                                       httpVersion: nil,
+                                       headerFields: nil)!
+        let mockData = """
         {
-            "id": 1,
-            "name": "Swift Testing"
+            "statusCode": 22
         }
         """.data(using: .utf8)!
         
-        let mockSuccessResponse = HTTPURLResponse(url: URL(string: "https://example.com")!,
-                                                  statusCode: 200,
-                                                  httpVersion: nil,
-                                                  headerFields: nil)!
-
-        await mockURLSession.setMockDataTask(data: mockJsonData, response: mockSuccessResponse)
+        await mockURLSession.setMockDataTask(data: mockData, response: response)
         let networkManager = NetworkManager(urlSession: mockURLSession)
         
-        // No error thrown because the response is successful
-        let result = try await networkManager.request(endpoint, responseType: MockSuccessResponse.self)
+        await #expect(throws: NetworkError.invalidURL.self) {
+            try await networkManager.request(endpoint, responseType: MockErrorResponse.self)
         
-        #expect(result.id == 1)
-        #expect(result.name.contains("Swift Testing"))
+        }
+    }*/
+    
+    @Test("No Response Data") func noResponseData() async throws {
+        let endpoint = MockEndpoint.noData
+        let networkManager = NetworkManager(urlSession: mockURLSession)
+        
+        await #expect(throws: NetworkError.noData.self) {
+            try await networkManager.request(endpoint, responseType: MockErrorResponse.self)
+        }
+    }
+    
+    @Suite("Decoding Errors")
+    struct DecodingErrors {
+        let mockURLSession = MockURLSession()
+        let endpoint = MockEndpoint.getMethod
+        
+        let response = HTTPURLResponse(url: URL(string: "http://example.com")!,
+                                       statusCode: 200,
+                                       httpVersion: nil,
+                                       headerFields: nil)!
+        
+        let dataCorruptedError = DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Mock corrupted data"))
+        let mockCorruptedData = """
+        {
+            "temperature" = 22
+            "temperatureUnit" = "Celsius
+        }
+        """.data(using: .utf8)!
+        
+        let keyNotFoundError = DecodingError.keyNotFound(MockCodingKeys.key, .init(codingPath: [], debugDescription: "Key not found"))
+        let mockKeyNotFoundData = """
+        {
+            "code": 22,
+            "temperatureUnit": "Celsius",
+        }
+        """.data(using: .utf8)!
+        
+        let typeMismatchError = DecodingError.typeMismatch(Int.self, .init(codingPath: [], debugDescription: "Type mismatch"))
+        let mockTypeMismatchData = """
+        {
+            "temperature": "22",
+            "temperatureUnit": "Celsius",
+        }
+        """.data(using: .utf8)!
+        
+        let valueNotFoundError = DecodingError.valueNotFound(Int.self, .init(codingPath: [], debugDescription: "Value not found"))
+        let mockValueNotFoundData = """
+        {
+            "temperature": null,
+            "temperatureUnit": "Celsius",
+        }
+        """.data(using: .utf8)!
+        
+        @Test("Data Corrupted Error") func dataCorrupted() async throws {
+            await mockURLSession.setMockDataTask(data: mockCorruptedData, response: response)
+            let networkManager = NetworkManager(urlSession: mockURLSession)
+            
+            await #expect(throws: NetworkError.decodingError(dataCorruptedError).self) {
+                try await networkManager.request(endpoint, responseType: MockDecodingErrorResponse.self)
+            }
+        }
+        
+        @Test("Key not Found Error") func keyNotFound() async throws {
+            await mockURLSession.setMockDataTask(data: mockKeyNotFoundData, response: response)
+            let networkManager = NetworkManager(urlSession: mockURLSession)
+            
+            await #expect(throws: NetworkError.decodingError(keyNotFoundError).self) {
+                try await networkManager.request(endpoint, responseType: MockDecodingErrorResponse.self)
+            }
+        }
+        
+        @Test("Type Mismatch Error") func typeMismatch() async throws {
+            await mockURLSession.setMockDataTask(data: mockTypeMismatchData, response: response)
+            let networkManager = NetworkManager(urlSession: mockURLSession)
+            
+            await #expect(throws: NetworkError.decodingError(typeMismatchError).self) {
+                try await networkManager.request(endpoint, responseType: MockDecodingErrorResponse.self)
+            }
+        }
+        
+        @Test("Value not Found Error") func valueNotFound() async throws {
+            await mockURLSession.setMockDataTask(data: mockValueNotFoundData, response: response)
+            let networkManager = NetworkManager(urlSession: mockURLSession)
+            
+            await #expect(throws: NetworkError.decodingError(valueNotFoundError).self) {
+                try await networkManager.request(endpoint, responseType: MockDecodingErrorResponse.self)
+            }
+        }
     }
 }
