@@ -18,16 +18,15 @@ public protocol Endpoint {
 
 extension Endpoint {
     public var urlRequest: URLRequest? {
-        var urlComponents = URLComponents(url: baseURL.appendingPathComponent(path),
-                                          resolvingAgainstBaseURL: false)
-        guard let url = urlComponents?.url else { return nil }
-        
+        guard var urlComponents = URLComponents(url: baseURL.appendingPathComponent(path),
+                                                resolvingAgainstBaseURL: false) else { return nil }
         if let queryParameters {
-            urlComponents?.queryItems = queryParameters.map {
+            urlComponents.queryItems = queryParameters.map {
                 URLQueryItem(name: $0.key, value: $0.value.description)
             }
         }
         
+        guard let url = urlComponents.url else { return nil }
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
         
