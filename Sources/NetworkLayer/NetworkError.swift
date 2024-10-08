@@ -4,17 +4,52 @@
 //
 //  Created by Feyyaz ONUR on 1.09.2024.
 //
+
 import Foundation
 
+/// Represents errors that can occur during network operations.
 public enum NetworkError: Error, Equatable {
+    /// Indicates that the provided URL is invalid.
     case invalidURL
+    
+    /// Indicates that no data was received from the server.
     case noData
+    
+    /// Indicates a decoding error occurred while processing the response.
     case decodingError(Error)
+    
+    /// Indicates an informational (100 to 199) response with a status code.
+    /// - Parameters:
+    ///   - statusCode: The status code received from the server.
+    ///   - data: The data associated with the informational response.
     case informational(statusCode: Int, data: Data)
+    
+    /// Indicates a redirection (300 to 399) response with a status code.
+    /// - Parameters:
+    ///   - statusCode: The status code received from the server.
+    ///   - data: The data associated with the redirection response.
     case redirection(statusCode: Int, data: Data)
+    
+    /// Indicates a client error (400 to 499) response with a status code.
+    /// - Parameters:
+    ///   - statusCode: The status code received from the server.
+    ///   - data: The data associated with the client error response.
     case clientError(statusCode: Int, data: Data)
+    
+    /// Indicates a server error (500 to 599) response with a status code.
+    /// - Parameters:
+    ///   - statusCode: The status code received from the server.
+    ///   - data: The data associated with the server error response.
     case serverError(statusCode: Int, data: Data)
+    
+    /// Indicates an unexpected status code was received.
+    /// - Parameters:
+    ///   - statusCode: The unexpected status code received from the server.
+    ///   - data: The data associated with the unexpected status code.
     case unexpectedStatusCode(statusCode: Int, data: Data)
+    
+    /// Indicates an unknown error occurred.
+    /// - Parameter error: The underlying error that occurred.
     case unknown(Error)
     
     private enum ErrorMessages {
