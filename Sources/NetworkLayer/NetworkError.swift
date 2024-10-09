@@ -40,7 +40,7 @@ public enum NetworkError: Error, Equatable {
     /// - Parameters:
     ///   - statusCode: The status code received from the server.
     ///   - data: The data associated with the server error response.
-    case serverError(statusCode: Int, data: Data)
+    case serverError(statusCode: Int, data: Data, message: String)
     
     /// Indicates an unexpected status code was received.
     /// - Parameters:
@@ -78,8 +78,8 @@ public enum NetworkError: Error, Equatable {
             return "\(ErrorMessages.redirection) \(statusCode). Response: \(self.dataToString(data))"
         case .clientError(let statusCode, let data):
             return "\(ErrorMessages.clientError) \(statusCode). Response: \(self.dataToString(data))"
-        case .serverError(let statusCode, let data):
-            return "\(ErrorMessages.serverError) \(statusCode). Response: \(self.dataToString(data))"
+        case .serverError(let statusCode, let data, let message):
+            return "Server Error \(statusCode): \(message). Response: \(dataToString(data))"
         case .unexpectedStatusCode(let statusCode, let data):
             return "\(ErrorMessages.unexpectedStatusCode) \(statusCode). Response: \(self.dataToString(data))"
         case .unknown(let error):
@@ -100,9 +100,13 @@ public enum NetworkError: Error, Equatable {
             return lhsError.localizedDescription == rhsError.localizedDescription
         case (.informational(let lhsStatusCode, let lhsData), .informational(let rhsStatusCode, let rhsData)),
             (.redirection(let lhsStatusCode, let lhsData), .redirection(let rhsStatusCode, let rhsData)),
-            (.clientError(let lhsStatusCode, let lhsData), .clientError(let rhsStatusCode, let rhsData)),
-            (.serverError(let lhsStatusCode, let lhsData), .serverError(let rhsStatusCode, let rhsData)),
-            (.unexpectedStatusCode(let lhsStatusCode, let lhsData), .unexpectedStatusCode(let rhsStatusCode, let rhsData)):
+            (.clientError(let lhsStatusCode, let lhsData), .clientError(let rhsStatusCode, let rhsData)):
+            return lhsStatusCode == rhsStatusCode && lhsData == rhsData
+        case (.serverError(let lhsStatusCode, let lhsData, let lhsMessage),
+              .serverError(let rhsStatusCode, let rhsData, let rhsMessage)):
+            return lhsStatusCode == rhsStatusCode && lhsData == rhsData && lhsMessage == rhsMessage
+        case (.unexpectedStatusCode(let lhsStatusCode, let lhsData),
+              .unexpectedStatusCode(let rhsStatusCode, let rhsData)):
             return lhsStatusCode == rhsStatusCode && lhsData == rhsData
         case (.unknown(let lhsError), .unknown(let rhsError)):
             return lhsError.localizedDescription == rhsError.localizedDescription

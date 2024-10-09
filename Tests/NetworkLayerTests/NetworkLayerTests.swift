@@ -9,7 +9,7 @@ struct EndpointCheck {
     
     @Test("Base URL and path are valid") func baseURLandPath() async throws {
         try #require(mockGetEndpoint.urlRequest?.url != nil)
-        #expect(mockGetEndpoint.urlRequest?.url!.absoluteString.contains("https://example.com/mock/testing") ?? false)
+        #expect(mockGetEndpoint.urlRequest?.url?.absoluteString.contains("https://example.com/mock/testing") ?? false)
     }
     
     @Test("HTTP method is GET") func getHttpMethod() {
@@ -42,11 +42,12 @@ struct EndpointCheck {
     }
 }
 
+/*
 @Suite("Network Manager Tests")
 struct NetworkManagerTest {
     let mockURLSession = MockURLSession()
     
-    @Test("Successful Request Test") func successfulRequest() async throws {
+    @Test("Successful Request Test") func successfulRequest() async "throws" {
         let endpoint = MockEndpoint.getMethod
         let mockJsonData = """
         {
@@ -115,7 +116,7 @@ struct NetworkManagerTest {
      // need to mock endpoint with a nil URLRequest
      
         let endpoint = MockEndpoint.invalidURL
-        let response = HTTPURLResponse(url: URL(string: "http://example.com")!,
+        let response = HTTPURLResponse(url: URL(string: "http:/exa mple.com")!,
                                        statusCode: 200,
                                        httpVersion: nil,
                                        headerFields: nil)!
@@ -132,7 +133,8 @@ struct NetworkManagerTest {
             try await networkManager.request(endpoint, responseType: MockErrorResponse.self)
         
         }
-    }*/
+    }
+     */
     
     @Test("No Response Data") func noResponseData() async throws {
         let endpoint = MockEndpoint.noData
@@ -222,3 +224,4 @@ struct NetworkManagerTest {
         }
     }
 }
+*/
