@@ -26,47 +26,65 @@ public actor NetworkManager {
         self.decoder = decoder
     }
     
-    public func request<T: Decodable>(_ endpoint: Endpoint, responseType: T.Type) async throws -> T {
+    public func request<T: Decodable, E: Decodable>(_ endpoint: Endpoint, responseType: T.Type, serverErrorType: E.Type) async -> Result<T, NetworkError> {
         guard let request = endpoint.urlRequest else {
-            throw NetworkError.invalidURL
+            return .failure(NetworkError.invalidURL)
         }
         
         do {
             let (data, response) = try await urlSession.data(for: request)
-            try validate(response: response, data: data)
+            let validationResult = validate(response: response, data: data, serverErrorType: serverErrorType)
             
-            return try decode(data: data, to: responseType)
-        } catch let error as NetworkError {
-            throw error
+            switch validationResult {
+            case .success:
+                return decode(data: data, to: responseType)
+            case .failure(let error):
+                return .failure(error)
+            }
+        } catch {
+            return .failure(NetworkError.unknown(error))
         }
     }
     
-    private func validate(response: URLResponse, data: Data) throws {
+    private func validate<T: Decodable>(response: URLResponse, data: Data, serverErrorType: T.Type) -> Result<Void, NetworkError> {
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw NetworkError.noData
+            return .failure(NetworkError.noData)
         }
         
         switch httpResponse.statusCode {
         case NetworkConstants.informationCodes:
-            throw NetworkError.informational(statusCode: httpResponse.statusCode, data: data)
+            return .failure(NetworkError.informational(statusCode: httpResponse.statusCode, data: data))
         case NetworkConstants.successCodes:
-            return
+            return .success(())
         case NetworkConstants.redirectionCodes:
-            throw NetworkError.redirection(statusCode: httpResponse.statusCode, data: data)
+            return .failure(NetworkError.redirection(statusCode: httpResponse.statusCode, data: data))
         case NetworkConstants.clientErrorCodes:
-            throw NetworkError.clientError(statusCode: httpResponse.statusCode, data: data)
+            return .failure(NetworkError.clientError(statusCode: httpResponse.statusCode, data: data))
         case NetworkConstants.serverErrorCodes:
-            throw NetworkError.serverError(statusCode: httpResponse.statusCode, data: data)
+            return decodeServerError(data: data, statusCode: httpResponse.statusCode, serverErrorType: serverErrorType)
         default:
-            throw NetworkError.unexpectedStatusCode(statusCode: httpResponse.statusCode, data: data)
+            return .failure(NetworkError.unexpectedStatusCode(statusCode: httpResponse.statusCode, data: data))
         }
     }
     
-    private func decode<T: Decodable>(data: Data, to type: T.Type) throws -> T {
+    
+    private func decode<T: Decodable>(data: Data, to type: T.Type) -> Result<T, NetworkError> {
         do {
-            return try decoder.decode(T.self, from: data)
+            let decodedValue = try decoder.decode(T.self, from: data)
+            return .success(decodedValue)
         } catch {
-            throw NetworkError.decodingError(error)
+            return .failure(NetworkError.decodingError(error))
         }
     }
+    
+    private func decodeServerError<T: Decodable>(data: Data, statusCode: Int, serverErrorType: T.Type) -> Result<Void, NetworkError> {
+        do {
+            let serverError = try decoder.decode(T.self, from: data)
+            let errorMessage = "Server Error \(statusCode): \(serverError)"
+            return .failure(NetworkError.serverError(statusCode: statusCode, data: data, message: errorMessage))
+        } catch {
+            return .failure(NetworkError.serverError(statusCode: statusCode, data: data, message: "An unknown server error occurred."))
+        }
+    }
+    
 }
