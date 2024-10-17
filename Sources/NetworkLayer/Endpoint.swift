@@ -8,7 +8,7 @@
 import Foundation
 
 public protocol Endpoint {
-    var baseURL: URL { get }
+    var baseURL: URL { get throws }
     var path: String { get }
     var method: HTTPMethod { get }
     var headers: [String: String]? { get }
@@ -18,8 +18,11 @@ public protocol Endpoint {
 
 extension Endpoint {
     public var urlRequest: URLRequest? {
-        guard var urlComponents = URLComponents(url: baseURL.appendingPathComponent(path),
-                                                resolvingAgainstBaseURL: false) else { return nil }
+        guard let fullURL = try? baseURL.appendingPathComponent(path),
+              var urlComponents = URLComponents(url: fullURL, resolvingAgainstBaseURL: false) else {
+            return nil
+        }
+        
         if let queryParameters {
             urlComponents.queryItems = queryParameters.map {
                 URLQueryItem(name: $0.key, value: $0.value.description)

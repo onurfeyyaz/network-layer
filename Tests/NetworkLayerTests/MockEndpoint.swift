@@ -17,11 +17,14 @@ enum MockEndpoint {
 
 extension MockEndpoint: Endpoint {
     var baseURL: URL {
-        switch self {
-        case .invalidURL:
-            URL(string: "invalidURLText") ?? URL(string: "")!
-        case .postMethod, .getMethod, .noData:
-            URL(string: "https://example.com")!
+        get throws {
+            switch self {
+            case .invalidURL:
+                // This will throw if the URL is invalid
+                try URL(validating: "http://exa mple.com")
+            case .postMethod, .getMethod, .noData:
+                URL(string: "https://example.com")!
+            }
         }
     }
     
