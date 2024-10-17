@@ -4,6 +4,7 @@
 //
 //  Created by Feyyaz ONUR on 1.09.2024.
 //
+
 import Foundation
 
 public enum NetworkError: Error, Equatable {

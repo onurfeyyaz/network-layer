@@ -109,9 +109,8 @@ struct NetworkManagerTest {
         }
     }
     
-    /*
+    
     @Test("Invalid URL") func invalidURL() async throws {
-     
      // need to mock endpoint with a nil URLRequest
      
         let endpoint = MockEndpoint.invalidURL
@@ -132,7 +131,7 @@ struct NetworkManagerTest {
             try await networkManager.request(endpoint, responseType: MockErrorResponse.self)
         
         }
-    }*/
+    }
     
     @Test("No Response Data") func noResponseData() async throws {
         let endpoint = MockEndpoint.noData
